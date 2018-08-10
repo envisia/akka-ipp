@@ -1,5 +1,7 @@
 package demo
 
+import java.nio.ByteOrder
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 
 import akka.actor.ActorSystem
@@ -9,9 +11,11 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.ByteString
 import de.envisia.akka.ipp.{IPPClient, IPPConfig}
 import de.envisia.akka.ipp.attributes.Attributes._
+import de.envisia.akka.ipp.attributes.CollectionBuilder
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 object Main {
 
@@ -26,30 +30,33 @@ object Main {
     val client =
       new IPPClient(http)(mat, executionContext)
 
-    val config = IPPConfig("localhost", port=6632, queue="/printers/cups-pdf")
+    val config = IPPConfig("192.168.179.196", port = 631)
 
-    //val x        = ByteString(Files.readAllBytes(Paths.get("examples/pdf-sample.pdf")))
-    //val printJob = client.printJob(x, config)
-    //val y = Await.result(printJob, 10.seconds)
-
-    //val x = client.poll(10, config)
-
-    val z = client.cancelJob(10, config)
-
-    //Await.result(z, 10.seconds)
-    //val y = Await.result(x, 10.seconds)
-
-    /* val jobs = for (i <- 1 to 2) yield {
-      if (i % 10 == 0)
-        Thread.sleep(200)
-      client.printerAttributes(config)
+    try {
+      val attr = Await.result(client.printerAttributes(config), 10.seconds)
+      println(s"Attributes: $attr")
+    } catch {
+      case NonFatal(t) =>
+        println(s"Error: $t")
     }
 
-    Await.ready(Future.sequence(jobs), 10.minutes)
-    */
+    val x = ByteString(Files.readAllBytes(Paths.get("/Users/schmitch/Downloads/SHIPMENT_LABEL.pdf")))
 
-    //val checkJob = client.getJobAttributes(102)
-    //Await.result(checkJob, 10.seconds)
+    val attribute =
+      CollectionBuilder.newBuilder().addMember(0x44.toByte, "media-type", "labels").result(0x34.toByte, "media-col")
+
+    val attributes = attribute :: Nil
+    val printJob   = client.printJob(x, config, "dummy", attributes)
+    try {
+      val y = Await.result(printJob, 10.seconds)
+      val x = Await.result(client.poll(y.jobData.jobID, config), 10.seconds)
+
+      println(s"Printed: $y | $x")
+    } catch {
+      case NonFatal(t) =>
+        println("error")
+        t.printStackTrace()
+    }
 
     http.shutdownAllConnectionPools().onComplete(_ => actorSystem.terminate())
 

@@ -1,35 +1,43 @@
 package de.envisia.akka.ipp.services
 
 import akka.util.ByteString
+import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.request.RequestBuilder.Request._
 import de.envisia.akka.ipp.attributes.Attributes._
 import de.envisia.akka.ipp.request.RequestBuilder
 
 private[ipp] class RequestService(
+    path: Option[String],
     uri: String,
-    lang: String = "en-us",
+    lang: String = "de",
     user: String = "dummy",
     queue: String,
     jobName: String = "",
     charset: String = "utf-8",
-    format: String = "application/octet-stream",
+    format: String = "application/pdf",
     requestId: Int = 1
 ) {
+
+  def simplePath: String = path.map(p => s"/$p").getOrElse("")
+
+  def printPath: String = simplePath + "/" + queue
+
+  private def generatedUri = s"$uri:$WELL_KNOWN_PORT"
 
   def cancelJob(operationId: Byte, jobId: Int): ByteString =
     new RequestBuilder[CancelJob]()
       .setCharset(charset)
-      .setUri(this.uri + s"$WELL_KNOWN_PORT" + queue)
+      .setUri(generatedUri + printPath)
       .setLanguage(lang)
       .setUser(user)
-      .setJobUri(this.uri + s"$WELL_KNOWN_PORT" + queue + "/job-" + jobId)
+      .setJobUri(generatedUri + printPath + "/job-" + jobId)
       .build[CancelJob](operationId, requestId)
       .request
 
   def getPrinterAttributes(operationId: Byte): ByteString =
     new RequestBuilder[GetPrinterAttributes]()
       .setCharset(charset)
-      .setUri(this.uri + s"$WELL_KNOWN_PORT" + queue)
+      .setUri(generatedUri + simplePath)
       .setLanguage(lang)
       .build[GetPrinterAttributes](operationId, requestId)
       .request
@@ -37,21 +45,23 @@ private[ipp] class RequestService(
   def getJobAttributes(operationId: Byte, jobId: Int): ByteString =
     new RequestBuilder[GetJobAttributes]()
       .setCharset(charset)
-      .setUri(this.uri + s"$WELL_KNOWN_PORT" + queue)
+      .setUri(generatedUri + printPath)
       .setLanguage(lang)
       .askWithJobId(jobId)
       .setUser(user)
       .build[GetJobAttributes](operationId, requestId)
       .request
 
-  def printJob(operationId: Byte, data: ByteString): ByteString =
+  def printJob(operationId: Byte, data: ByteString, attributes: List[Attribute]): ByteString =
     new RequestBuilder[PrintJob]()
       .setCharset(charset)
-      .setUri(this.uri + s"$WELL_KNOWN_PORT" + queue)
+      .setUri(generatedUri + printPath)
       .setLanguage(lang)
       .setUser(user)
       .setJobName(jobName)
       .setFormat(format)
+      .setJobAttributes(attributes)
       .build[PrintJob](operationId, requestId)
       .request ++ data
+
 }

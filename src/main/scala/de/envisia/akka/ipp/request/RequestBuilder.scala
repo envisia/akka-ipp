@@ -1,6 +1,7 @@
 package de.envisia.akka.ipp.request
 
 import akka.util.ByteString
+import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.attributes.Attributes._
 import de.envisia.akka.ipp.request.RequestBuilder.IppRequest
 import de.envisia.akka.ipp.request.RequestBuilder.Request._
@@ -8,7 +9,8 @@ import de.envisia.akka.ipp.request.RequestBuilder.Request._
 import scala.reflect.runtime.universe._
 
 private[ipp] class RequestBuilder[T <: RequestBuilder.Request](
-    attributes: Map[String, (Byte, String)] = Map.empty[String, (Byte, String)]
+    attributes: Map[String, (Byte, String)] = Map.empty[String, (Byte, String)],
+    values: List[Attribute] = Nil
 ) {
 
   /**
@@ -16,37 +18,37 @@ private[ipp] class RequestBuilder[T <: RequestBuilder.Request](
     */
   def setCharset(charset: String): RequestBuilder[T with Charset] = {
     val tpl = (ATTRIBUTE_TAGS("attributes-charset"), charset)
-    new RequestBuilder(attributes + ("attributes-charset" -> tpl))
+    new RequestBuilder(attributes + ("attributes-charset" -> tpl), values)
   }
   def setUri(uri: String): RequestBuilder[T with PrinterUri] = {
     val tpl = (ATTRIBUTE_TAGS("printer-uri"), uri)
-    new RequestBuilder(attributes + ("printer-uri" -> tpl))
+    new RequestBuilder(attributes + ("printer-uri" -> tpl), values)
   }
   def setLanguage(lang: String): RequestBuilder[T with Language] = {
     val tpl = (ATTRIBUTE_TAGS("attributes-natural-language"), lang)
-    new RequestBuilder(attributes + ("attributes-natural-language" -> tpl))
+    new RequestBuilder(attributes + ("attributes-natural-language" -> tpl), values)
   }
 
   def setJobUri(jobUri: String): RequestBuilder[T with JobUri] = {
     val tpl = (ATTRIBUTE_TAGS("job-uri"), jobUri)
-    new RequestBuilder(attributes + ("job-uri" -> tpl))
+    new RequestBuilder(attributes + ("job-uri" -> tpl), values)
   }
 
   def setUser(user: String): RequestBuilder[T with User] = {
     val tpl = (ATTRIBUTE_TAGS("requesting-user-name"), user)
-    new RequestBuilder(attributes + ("requesting-user-name" -> tpl))
+    new RequestBuilder(attributes + ("requesting-user-name" -> tpl), values)
   }
   def setJobName(jobName: String): RequestBuilder[T with JobName] = {
     val tpl = (ATTRIBUTE_TAGS("job-name"), jobName)
-    new RequestBuilder(attributes + ("job-name" -> tpl))
+    new RequestBuilder(attributes + ("job-name" -> tpl), values)
   }
   def setFormat(format: String): RequestBuilder[T with Format] = {
     val tpl = (ATTRIBUTE_TAGS("document-format"), format)
-    new RequestBuilder(attributes + ("document-format" -> tpl))
+    new RequestBuilder(attributes + ("document-format" -> tpl), values)
   }
   def askWithJobId(jobId: Int): RequestBuilder[T with JobId] = {
     val tpl = (ATTRIBUTE_TAGS("job-id"), jobId.toString)
-    new RequestBuilder(attributes + ("job-id" -> tpl))
+    new RequestBuilder(attributes + ("job-id" -> tpl), values)
   }
 
   /**
@@ -54,16 +56,20 @@ private[ipp] class RequestBuilder[T <: RequestBuilder.Request](
     */
   def addOperationAttribute(tag: Byte, name: String, value: String): RequestBuilder[T with OperationAttribute] = {
     val tpl = (tag, value)
-    new RequestBuilder[T with OperationAttribute](attributes + (name -> tpl))
+    new RequestBuilder[T with OperationAttribute](attributes + (name -> tpl), values)
   }
 
   def addJobAttribute(tag: Byte, name: String, value: String): RequestBuilder[T with JobAttribute] = {
     val tpl = (tag, value)
-    new RequestBuilder[T with JobAttribute](attributes + (name -> tpl))
+    new RequestBuilder[T with JobAttribute](attributes + (name -> tpl), values)
+  }
+
+  def setJobAttributes(values: List[Attribute]): RequestBuilder[T with JobAttribute] = {
+    new RequestBuilder[T with JobAttribute](attributes, values)
   }
 
   def build[A](oid: Byte, reqId: Int)(implicit tag: TypeTag[A]): IppRequest = {
-    val serializer = new RequestSerializer(attributes)
+    val serializer = new RequestSerializer(attributes, values)
     val result     = serializer.serialize[A](oid, reqId)
     new IppRequest(result)
   }

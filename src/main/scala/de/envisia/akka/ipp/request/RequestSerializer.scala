@@ -5,17 +5,21 @@ import java.nio.charset.StandardCharsets
 
 import scala.reflect.runtime.universe._
 import akka.util.ByteString
-import de.envisia.akka.ipp.attributes.Attributes.{ATTRIBUTE_GROUPS, IPP_VERSION, RESERVED}
-import de.envisia.akka.ipp.request.RequestBuilder.Request.{CancelJob, GetJobAttributes, GetPrinterAttributes, PrintJob}
+import de.envisia.akka.ipp.attributes.Attribute
+import de.envisia.akka.ipp.attributes.Attributes.{ATTRIBUTE_GROUPS, IPP_MINOR_VERSION, IPP_VERSION, RESERVED}
+import de.envisia.akka.ipp.request.RequestBuilder.Request._
 
-private[request] class RequestSerializer(attributes: Map[String, (Byte, String)] = Map.empty[String, (Byte, String)]) {
+private[request] class RequestSerializer(
+    attributes: Map[String, (Byte, String)] = Map.empty[String, (Byte, String)],
+    jobAttributes: List[Attribute] = Nil
+) {
 
   private[this] implicit val bO: ByteOrder = ByteOrder.BIG_ENDIAN
 
   // generic byte strings
   @inline protected[request] final def putHeader(operationId: Byte, requestId: Int): ByteString =
     ByteString.newBuilder
-      .putBytes(Array(IPP_VERSION, RESERVED))
+      .putBytes(Array(IPP_VERSION, IPP_MINOR_VERSION))
       .putBytes(Array(RESERVED, operationId))
       .putInt(requestId)
       .putByte(ATTRIBUTE_GROUPS("operation-attributes-tag"))
@@ -32,6 +36,27 @@ private[request] class RequestSerializer(attributes: Map[String, (Byte, String)]
           .result()
       case _ => throw new IllegalStateException("could not serialize malformed request")
     }
+
+  protected final def putByte(byte: Byte): ByteString = ByteString.newBuilder.putByte(byte).result()
+
+  protected final def renderAttributes: ByteString = {
+    println(s"Job Attributes: ${jobAttributes.nonEmpty}")
+    if (jobAttributes.nonEmpty) {
+      putByte(0x02) ++ jobAttributes
+        .foldLeft(ByteString.newBuilder) {
+          case (builder, attribute) =>
+            builder
+              .putByte(attribute.tag)
+              .putShort(attribute.name.length)
+              .putBytes(attribute.name.getBytes(StandardCharsets.UTF_8))
+              .putShort(attribute.valueLength)
+              .append(attribute.value)
+        }
+        .result()
+    } else {
+      ByteString.empty
+    }
+  }
 
   /**
     * method for inserting the jobId
@@ -68,7 +93,9 @@ private[request] class RequestSerializer(attributes: Map[String, (Byte, String)]
         base ++
           putAttribute("requesting-user-name") ++
           putAttribute("job-name") ++
-          putAttribute("document-format") ++ putEnd
+          putAttribute("document-format") ++
+          renderAttributes ++ // job attributes
+          putEnd
       case t if t == typeTag[GetJobAttributes] =>
         base ++ putInteger("job-id") ++ putAttribute("requesting-user-name") ++ putEnd
       case _ => throw new IllegalArgumentException("wrong request type")

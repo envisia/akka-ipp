@@ -11,12 +11,12 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import de.envisia.akka.ipp.OperationType._
 import de.envisia.akka.ipp.Response._
+import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.services.{PollingService, RequestService}
 import org.slf4j.LoggerFactory
 
 import scala.reflect.runtime.universe._
 import scala.concurrent.{ExecutionContext, Future}
-
 
 class IPPClient(http: HttpExt)(
     implicit mat: Materializer,
@@ -40,8 +40,13 @@ class IPPClient(http: HttpExt)(
   def cancelJob(jobId: Int, config: IPPConfig): Future[CancelJobResponse] =
     dispatch[CancelJobResponse](CancelJob(jobId), config)
 
-  def printJob(data: ByteString, config: IPPConfig): Future[PrintJobResponse] =
-    dispatch[Response.PrintJobResponse](PrintJob(data), config)
+  def printJob(
+      data: ByteString,
+      config: IPPConfig,
+      jobName: String = "",
+      attributes: List[Attribute] = Nil
+  ): Future[PrintJobResponse] =
+    dispatch[Response.PrintJobResponse](PrintJob(data, attributes), config, jobName)
 
   def printerAttributes(config: IPPConfig): Future[GetPrinterAttributesResponse] =
     dispatch[GetPrinterAttributesResponse](GetPrinterAttributes, config)
@@ -52,28 +57,31 @@ class IPPClient(http: HttpExt)(
   def poll(jobId: Int, config: IPPConfig): Future[Response.JobData] =
     new PollingService(this, killSwitch).poll(jobId, config)
 
-  final protected[ipp] def dispatch[A <: IppResponse](ev: OperationType, config: IPPConfig)(
+  final protected[ipp] def dispatch[A <: IppResponse](ev: OperationType, config: IPPConfig, jobName: String = "")(
       implicit tag: TypeTag[A]
   ): Future[A] = {
 
-    val service = new RequestService("ipp://" + config.host, queue = config.queue, requestId = getRequestId)
+    val service = new RequestService(
+      path = config.path,
+      "ipp://" + config.host,
+      queue = config.queue,
+      requestId = getRequestId,
+      jobName = jobName
+    )
 
-    val body = ev match {
-      case CancelJob(jobId) =>
-        Source.single(service.cancelJob(CancelJob(jobId).operationId, jobId))
-      case PrintJob(data) =>
-        Source.single(service.printJob(PrintJob(data).operationId, data))
-      case GetPrinterAttributes =>
-        Source.single(service.getPrinterAttributes(GetPrinterAttributes.operationId))
-      case GetJobAttributes(jobId) =>
-        Source.single(service.getJobAttributes(GetJobAttributes(jobId).operationId, jobId))
+    val body: ByteString = ev match {
+      case CancelJob(jobId)        => service.cancelJob(CancelJob(jobId).operationId, jobId)
+      case p: PrintJob             => service.printJob(p.operationId, p.data, p.attributes)
+      case GetPrinterAttributes    => service.getPrinterAttributes(GetPrinterAttributes.operationId)
+      case GetJobAttributes(jobId) => service.getJobAttributes(GetJobAttributes(jobId).operationId, jobId)
     }
 
-    val ntt = HttpEntity(ippContentType, body)
-    val request = HttpRequest(HttpMethods.POST, uri = s"http://${config.host}:${config.port}", entity = ntt)
-    val response = this.execute(request)
+    val pathValue = service.printPath
+    val ntt       = HttpEntity(ippContentType, Source.single(body))
+    val request   = HttpRequest(HttpMethods.POST, uri = s"http://${config.host}:${config.port}$pathValue", entity = ntt)
+    val response  = this.execute(request)
     val result = response.flatMap {
-      case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+      case HttpResponse(StatusCodes.OK, _, entity, _) =>
         Unmarshal(entity).to[ByteString]
       case resp => Future.failed(new Exception(s"Unexpected status code ${resp.status}"))
     }

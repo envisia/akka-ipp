@@ -23,7 +23,7 @@ private[ipp] class Response(bs: ByteString) {
     val statusCode = bb.getShort
     val requestId  = bb.getInt
 
-    val attrs = parseAttributes(0x01.toByte, Map.empty) //TODO group byte? groupbyte not yet used
+    val attrs = parseAttributes(0x01.toByte, Map.empty) // TODO group byte? groupbyte not yet used
     val result = o.operationId match {
       case x if x == OPERATION_IDS("Get-Printer-Attributes") =>
         GetPrinterAttributesResponse(o.operationId, version.toShort, statusCode, requestId, attrs)
