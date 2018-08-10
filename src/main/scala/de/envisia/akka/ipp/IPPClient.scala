@@ -76,10 +76,14 @@ class IPPClient(http: HttpExt)(
       case GetJobAttributes(jobId) => service.getJobAttributes(GetJobAttributes(jobId).operationId, jobId)
     }
 
-    val pathValue = service.printPath
-    val ntt       = HttpEntity(ippContentType, Source.single(body))
-    val request   = HttpRequest(HttpMethods.POST, uri = s"http://${config.host}:${config.port}$pathValue", entity = ntt)
-    val response  = this.execute(request)
+    val pathValue = ev match {
+      case GetPrinterAttributes => ""
+      case _                    => service.printPath
+    }
+
+    val ntt      = HttpEntity(ippContentType, Source.single(body))
+    val request  = HttpRequest(HttpMethods.POST, uri = s"http://${config.host}:${config.port}$pathValue", entity = ntt)
+    val response = this.execute(request)
     val result = response.flatMap {
       case HttpResponse(StatusCodes.OK, _, entity, _) =>
         Unmarshal(entity).to[ByteString]
