@@ -40,7 +40,6 @@ private[request] class RequestSerializer(
   protected final def putByte(byte: Byte): ByteString = ByteString.newBuilder.putByte(byte).result()
 
   protected final def renderAttributes: ByteString = {
-    println(s"Job Attributes: ${jobAttributes.nonEmpty}")
     if (jobAttributes.nonEmpty) {
       putByte(0x02) ++ jobAttributes
         .foldLeft(ByteString.newBuilder) {

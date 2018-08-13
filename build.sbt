@@ -72,7 +72,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  // For non cross-build projects, use releaseStepCommand("publishSigned")
+  // For non cross-build projects, use releaseStsonatypeReleaseAllepCommand("publishSigned")
   releaseStepCommandAndRemaining("+publishSigned"),
   setNextVersion,
   commitNextVersion,
