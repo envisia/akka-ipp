@@ -5,8 +5,8 @@ updateOptions := updateOptions.value.withGigahorse(false)
 
 name := "akka-ipp"
 organization in ThisBuild := "de.envisia.ipp"
-scalaVersion in ThisBuild := "2.12.6"
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value)
+scalaVersion in ThisBuild := "2.12.8"
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.13.0")
 testFrameworks += new TestFramework("utest.runner.Framework")
 sonatypeProfileName := "de.envisia.ipp"
 
