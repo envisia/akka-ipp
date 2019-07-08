@@ -1,8 +1,6 @@
 import ReleaseTransformations._
 import xerial.sbt.Sonatype.GitHubHosting
 
-updateOptions := updateOptions.value.withGigahorse(false)
-
 name := "akka-ipp"
 organization in ThisBuild := "de.envisia.ipp"
 scalaVersion in ThisBuild := "2.12.8"
@@ -21,17 +19,6 @@ scalacOptions := Seq(
   "-deprecation",
   "-encoding",
   "UTF-8",
-  "-feature",
-  "-language:existentials",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-unchecked",
-  "-Xfatal-warnings",
-  "-Yno-adapted-args",
-  "-Ywarn-dead-code",
-  "-Ywarn-numeric-widen",
-  "-Ywarn-value-discard",
-  "-Xfuture"
 )
 
 // Sonatype Settings for Publishing
@@ -41,12 +28,6 @@ developers := List(
     name = "Christian Schmitt",
     email = "c.schmitt@envisia.de",
     url = url("http://github.com/schmitch")
-  ),
-  Developer(
-    id = "zy4",
-    name = "Seung-Zin Nam",
-    email = "z.nam@envisia.de",
-    url = url("http://github.com/zy4")
   )
 )
 sonatypeProjectHosting := Some(GitHubHosting("envisia", "akka-ipp", "c.schmitt@envisia.de"))
