@@ -1,20 +1,16 @@
 package demo
 
-import java.nio.ByteOrder
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.stream.scaladsl.FileIO
-import akka.stream.{ActorMaterializer, Materializer}
-import akka.util.ByteString
-import de.envisia.akka.ipp.{IPPClient, IPPConfig}
-import de.envisia.akka.ipp.attributes.Attributes._
 import de.envisia.akka.ipp.attributes.CollectionBuilder
+import de.envisia.akka.ipp.{IPPClient, IPPConfig}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import java.nio.file.{Files, Paths}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
 import scala.util.control.NonFatal
 
 object Main {
@@ -22,7 +18,7 @@ object Main {
   def main(args: Array[String]): Unit = {
 
     implicit val actorSystem: ActorSystem           = ActorSystem()
-    implicit val mat: Materializer                  = ActorMaterializer()
+    implicit val mat: Materializer                  = Materializer(actorSystem)
     implicit val executionContext: ExecutionContext = actorSystem.dispatcher
 
     val http = Http()

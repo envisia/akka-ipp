@@ -1,9 +1,9 @@
-import ReleaseTransformations._
+import ReleaseTransformations.*
 import xerial.sbt.Sonatype.GitHubHosting
 
 name := "akka-ipp"
-organization in ThisBuild := "de.envisia.ipp"
-scalaVersion in ThisBuild := "2.13.2"
+ThisBuild / organization := "de.envisia.ipp"
+ThisBuild / scalaVersion := "2.13.2"
 testFrameworks += new TestFramework("utest.runner.Framework")
 sonatypeProfileName := "de.envisia.ipp"
 
@@ -31,8 +31,8 @@ developers := List(
 )
 sonatypeProjectHosting := Some(GitHubHosting("envisia", "akka-ipp", "c.schmitt@envisia.de"))
 licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-publishMavenStyle in ThisBuild := true
-pomIncludeRepository in ThisBuild := { _ =>
+ThisBuild / publishMavenStyle := true
+ThisBuild / pomIncludeRepository := { _ =>
   false
 }
 publishTo := {

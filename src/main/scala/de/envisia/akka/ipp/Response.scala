@@ -2,13 +2,12 @@ package de.envisia.akka.ipp
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
-import akka.util.ByteString
 import de.envisia.akka.ipp.Response._
 import de.envisia.akka.ipp.attributes.Attributes._
 import de.envisia.akka.ipp.attributes.IPPValue
 import de.envisia.akka.ipp.attributes.IPPValue.{NumericVal, TextVal}
 import de.envisia.akka.ipp.util.IppHelper
+import org.apache.pekko.util.ByteString
 
 import scala.reflect.runtime.universe._
 import scala.annotation.tailrec

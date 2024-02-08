@@ -1,8 +1,8 @@
 package de.envisia.akka.ipp
 
-import akka.util.ByteString
 import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.attributes.Attributes._
+import org.apache.pekko.util.ByteString
 
 sealed abstract class OperationType(val name: String, val operationId: Byte)
 

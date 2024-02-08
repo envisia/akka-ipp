@@ -2,14 +2,13 @@ package test
 
 import java.io.FileInputStream
 import java.nio.file.{Files, Paths}
-
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.stream.{ActorMaterializer, Materializer}
-import akka.util.ByteString
 import de.envisia.akka.ipp.attributes.IPPValue
 import de.envisia.akka.ipp.attributes.IPPValue.TextVal
 import de.envisia.akka.ipp.{IPPClient, IPPConfig, Response}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import utest._
 import org.apache.tika.parser.pdf._
 import org.apache.tika.metadata._
@@ -23,7 +22,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 object IppSpec extends TestSuite {
 
   implicit val actorSystem: ActorSystem           = ActorSystem()
-  implicit val mat: Materializer                  = ActorMaterializer()
+  implicit val mat: Materializer                  = Materializer(actorSystem)
   implicit val executionContext: ExecutionContext = actorSystem.dispatcher
 
   val http = Http()
@@ -35,7 +34,7 @@ object IppSpec extends TestSuite {
   val pdf                                               = ByteString(Files.readAllBytes(Paths.get("examples/pdf-sample.pdf")))
   val jA: Future[Response.PrintJobResponse]             = client.printJob(pdf, config)
 
-  val pdfParser: PDFParser = new PDFParser
+  val pdfParser: PDFParser = new PDFParser()
 
   override def tests = Tests {
     val response: Future[(Short, Map[String, List[IPPValue]])] = for {
@@ -44,16 +43,16 @@ object IppSpec extends TestSuite {
     val jobResponse: Future[Response.JobData] = for {
       r <- jA
     } yield r.jobData
-    'versionTest - {
+    Symbol("versionTest") - {
       response.map(_._1 ==> 2)
     }
-    'someAttrTest - {
+    Symbol("someAttrTest") - {
       response.map(_._2("natural-language-configured").head.asInstanceOf[TextVal].value ==> "en-us")
     }
-    'printJobTest - {
+    Symbol("printJobTest") - {
       jobResponse.map(_.jobState ==> 3) // processing
     }
-    'comparePDFs - {
+    Symbol("comparePDFs") - {
       val jobId   = Await.result(jobResponse, Duration.Inf).jobID
       val jobDone = Await.result(client.poll(jobId, config), Duration.Inf)
       if (jobDone.jobState == 9) {

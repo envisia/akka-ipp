@@ -1,18 +1,17 @@
 package de.envisia.akka.ipp
 
 import java.util.concurrent.atomic.AtomicInteger
-
-import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.MediaType.NotCompressible
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.{KillSwitches, Materializer}
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
 import de.envisia.akka.ipp.OperationType._
 import de.envisia.akka.ipp.Response._
 import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.services.{PollingService, RequestService}
+import org.apache.pekko.http.scaladsl.HttpExt
+import org.apache.pekko.http.scaladsl.model.MediaType.NotCompressible
+import org.apache.pekko.http.scaladsl.model.{ContentType, HttpEntity, HttpMethods, HttpRequest, HttpResponse, MediaType, StatusCodes}
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.{KillSwitches, Materializer}
+import org.apache.pekko.util.ByteString
 import org.slf4j.LoggerFactory
 
 import scala.reflect.runtime.universe._

@@ -1,13 +1,13 @@
 package de.envisia.akka.ipp.services
 
-import akka.stream.stage._
-import akka.stream.{ Attributes, Outlet, SourceShape }
-import de.envisia.akka.ipp.Response.{ GetJobAttributesResponse, JobData }
-import de.envisia.akka.ipp.{ IPPClient, IPPConfig }
+import de.envisia.akka.ipp.Response.{GetJobAttributesResponse, JobData}
+import de.envisia.akka.ipp.{IPPClient, IPPConfig}
+import org.apache.pekko.stream.{Attributes, Outlet, SourceShape}
+import org.apache.pekko.stream.stage.{AsyncCallback, GraphStage, GraphStageLogic, OutHandler, TimerGraphStageLogic}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 private[ipp] class JobStateSource(jobId: Int, client: IPPClient, config: IPPConfig)(implicit ec: ExecutionContext)
     extends GraphStage[SourceShape[JobData]] {

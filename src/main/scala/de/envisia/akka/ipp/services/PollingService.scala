@@ -1,9 +1,9 @@
 package de.envisia.akka.ipp.services
 
-import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.{Materializer, SharedKillSwitch}
 import de.envisia.akka.ipp.{IPPClient, IPPConfig}
 import de.envisia.akka.ipp.Response.JobData
+import org.apache.pekko.stream.scaladsl.{Keep, Sink, Source}
+import org.apache.pekko.stream.{Materializer, SharedKillSwitch}
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -1,10 +1,10 @@
 package de.envisia.akka.ipp.request
 
-import akka.util.ByteString
 import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.attributes.Attributes._
 import de.envisia.akka.ipp.request.RequestBuilder.IppRequest
 import de.envisia.akka.ipp.request.RequestBuilder.Request._
+import org.apache.pekko.util.ByteString
 
 import scala.reflect.runtime.universe._
 

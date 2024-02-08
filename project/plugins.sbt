@@ -1,13 +1,10 @@
 // Plublishing
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.3")
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.1")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.21")
+addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.1.2")
 
 // Release
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.7")
+addSbtPlugin("com.github.sbt" % "sbt-release" % "1.4.0")
 
 // Scala Formatting
-addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.4.0")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.6")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
-
-// Coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")

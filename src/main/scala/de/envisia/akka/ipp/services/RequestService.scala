@@ -1,10 +1,10 @@
 package de.envisia.akka.ipp.services
 
-import akka.util.ByteString
 import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.request.RequestBuilder.Request._
 import de.envisia.akka.ipp.attributes.Attributes._
 import de.envisia.akka.ipp.request.RequestBuilder
+import org.apache.pekko.util.ByteString
 
 private[ipp] class RequestService(
     path: Option[String],

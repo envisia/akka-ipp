@@ -2,12 +2,11 @@ package de.envisia.akka.ipp.request
 
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
-
 import scala.reflect.runtime.universe._
-import akka.util.ByteString
 import de.envisia.akka.ipp.attributes.Attribute
 import de.envisia.akka.ipp.attributes.Attributes.{ATTRIBUTE_GROUPS, IPP_MINOR_VERSION, IPP_VERSION, RESERVED}
 import de.envisia.akka.ipp.request.RequestBuilder.Request._
+import org.apache.pekko.util.ByteString
 
 private[request] class RequestSerializer(
     attributes: Map[String, (Byte, String)] = Map.empty[String, (Byte, String)],

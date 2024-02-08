@@ -1,9 +1,9 @@
 package de.envisia.akka.ipp.attributes
 
+import org.apache.pekko.util.{ByteString, ByteStringBuilder}
+
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
-
-import akka.util.{ByteString, ByteStringBuilder}
 
 object CollectionBuilder {
 
